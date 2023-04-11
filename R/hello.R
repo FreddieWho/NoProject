@@ -31,40 +31,17 @@ plt.pnt <- ggplot(df) +
   geom_point(aes(A,B,color = Col))
 
 plt.box <- ggplot(df) +
-  geom_boxplot(aes(x = Col, y = C, fill = (id %% 3) %>% as.factor()))
+  geom_boxplot(aes(fill = Col, y = C, x = (id %% 3) %>% as.factor()))
+
+plt.box_new <- ggplot(df) +
+  geom_boxplot(aes(fill = Col, y = C, x = (id %% 3) %>% as.factor())) +
+  ggsci::scale_fill_aaas()
 
 # structure & function ----------------------------------------------------
 
 # Core principle
 # Object Oriented
 # Figure Based
-
-project =
-  (
-    # Project relevant
-    Proj.Name,
-    Proj.Path,
-    Proj.Text,
-
-    Figs = (
-
-      Figure(
-        Fig.Name,
-        Fig.Text,
-
-        Plots = (
-
-          Plot(
-            Plt.Name,
-            Plt.Type,
-            Plt.ColMap,
-            Plt.Text,
-            Plt.gg
-          )
-        )
-      )
-    )
-  )
 
 # classes -----------------------------------------------------------------
 
@@ -74,6 +51,7 @@ NoPlot <- setClass(
   Class = 'NoPlot',
   slots = list(
     Plt.Name = 'character',
+    Plt.Ver  = 'character',
     Plt.Type = 'character',
     Plt.ColMap = 'list',
     Plt.Text = 'character',
@@ -84,7 +62,6 @@ NoPlot <- setClass(
 NoFig <- setClass(
   Class = 'NoFig',
   slots = list(
-    Fig.Grp  = 'character',
     Fig.Name = 'character',
     Fig.Text = 'character',
     Fig.Plts = 'list'
@@ -96,7 +73,6 @@ NoProj <- setClass(
   slots = list(
     Proj.Path = 'character',
     Proj.Name = 'character',
-    Proj.Ver  = 'character',
     Proj.Text = 'character',
     Proj.Figs = 'list'
   )
@@ -134,5 +110,70 @@ init_Proj <- function(Proj.Path,
 proj <- init_Proj(Proj.Path = '.',Proj.Name = 'Demo')
 
 
+# Add ---------------------------------------------------------------------
 
+AddFig <- function(Proj,
+                    Fig.Name,
+                    Fig.Text = '',
+                    Fig.Plts = list()) {
+  if(is.null(Fig.Name) ){
+    stop('Project must have a name')
+  }
+  if(sum(Fig.Name %in% names(Proj@Proj.Figs)) > 0){
+    stop('Figure existed')
+  }
 
+  Fig <- NoFig(
+    Fig.Name = Fig.Name,
+    Fig.Text = Fig.Text,
+    Fig.Plts = list())
+
+  Proj@Proj.Figs[[Fig.Name]] <- Fig
+
+  Proj
+}
+
+# AddFigs <- function(Proj,
+#                     Fig.Name,
+#                     Fig.Text = '',
+#                     Fig.Plts = list()) {
+#   if(is.null(Fig.Name) ){
+#     stop('Project must have a name')
+#   }
+#   if(sum(Fig.Name %in% names(Proj@Proj.Figs)) > 0){
+#     stop('Figure existed')
+#   }
+#
+#   Fig <- NoFig(
+#     Fig.Name = Fig.Name,
+#     Fig.Text = Fig.Text,
+#     Fig.Plts = list())
+#
+#
+#   .proj.name <- deparse(substitute(Proj))
+#   eval(parse(text = eval(expression(paste0(.proj.name,'@Figs$',Fig.Name, " <- ",
+#                                            Fig)))))
+# }
+
+proj.aF <- AddFigs(proj,'Fig.1')
+
+AddPlt <- function(Proj,
+                    Fig.Name,
+                    Fig.Text = '',
+                    Fig.Plts = list()) {
+  if(is.null(Fig.Name) ){
+    stop('Project must have a name')
+  }
+  if(sum(Fig.Name %in% names(Proj@Proj.Figs)) > 0){
+    stop('Figure existed')
+  }
+
+  Fig <- NoFig(
+    Fig.Name = Fig.Name,
+    Fig.Text = Fig.Text,
+    Fig.Plts = list())
+
+  Proj@Proj.Figs[[Fig.Name]] <- Fig
+
+  Proj
+}
