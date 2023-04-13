@@ -46,8 +46,6 @@ plt.box_new <- ggplot(df) +
 
 # classes -----------------------------------------------------------------
 
-setOldClass(c('gg','ggplot'))
-
 NoPlot <- R6Class(
   classname = 'NoPlot',
   public = list(
@@ -60,63 +58,123 @@ NoPlot <- R6Class(
   )
 )
 
+
+
+# Class:NoFig -------------------------------------------------------------
+
 NoFig <- R6Class(
   classname = 'NoFig',
-  public = list(
+  private = list(
     Fig.Name = 'character',
     Fig.Text = 'character',
     Fig.Plts = 'list'
+  ),
+  public = list(
+    initialize = function(Fig.Name,
+                          Fig.Text = ''){
+      private$Fig.Name <- Fig.Name
+      private$Fig.Text <- Fig.Text
+      private$Fig.Plts <- NA
+    },
+    show = function(choose = 'Fig.Name',int = T){
+      if(int){
+        choose <- readline('Type:\nFig.Name\nFig.Text\nFig.Plts')
+        if(choose == ''){
+          stop('Enter a slot')
+        }
+      }
+
+      switch(choose,
+             Fig.Name = private$Fig.Name,
+             Fig.Text = private$Fig.Text,
+             Fig.Plts = names(private$Fig.Plts))
+    }
   )
 )
 
+
+# Class: NoProj -----------------------------------------------------------
+
 NoProj <- R6Class(
   classname = 'NoProj',
-  public = list(
+  # private ####
+  private = list(
     Proj.Path = 'character',
     Proj.Name = 'character',
     Proj.Text = 'character',
     Proj.Figs = 'list'
+  ),
+  # public ####
+  public = list(
+    initialize = function(Proj.Path,
+                          Proj.Name,
+                          Proj.Text = ''){
+      Proj.Path <- normalizePath(Proj.Path)
+      Proj.Path <- paste0(Proj.Path,'/NoProj_',Proj.Name) %>% gsub("\\\\", "/", .)
+
+      # if(dir.exists(Proj.Path)){
+      #   stop('Project folder existed')
+      # }
+      if(is.null(Proj.Name)){
+        stop('Project must have a name')
+      }
+
+      private$Proj.Path <- Proj.Path
+      private$Proj.Name <- Proj.Name
+      private$Proj.Text <- Proj.Text
+      private$Proj.Figs <- NULL
+
+      dir.create(Proj.Path)
+    },
+    show = function(choose = 'Proj.Path',int = T){
+      if(int){
+        choose <- readline('Type:\nProj.Path\nProj.Name\nProj.Text\nProj.Figs\n')
+        if(choose == ''){
+          stop('Enter a slot')
+        }
+      }
+
+      switch(choose,
+             Proj.Path = private$Proj.Path,
+             Proj.Name = private$Proj.Name,
+             Proj.Text = private$Proj.Text,
+             Proj.Figs = names(private$Proj.Figs))
+    }
+  ),
+  # active ####
+  active = list(
+    addFig = function(Fig) {
+      Fig.Name = Fig$show(int = F)
+      private$Proj.Figs <- append(private$Proj.Figs,
+                                  list(Fig) %>% `names<-`(Fig.Name))
+    }
   )
 )
 
-
+test <- R6Class(
+  classname = 'test',
+  public = list(
+    x = 'character'
+  )
+)
 
 # Initiating --------------------------------------------------------------
 
-init_Proj <- function(Proj.Path,
-                      Proj.Name,
-                      Proj.Text = '',
-                      Proj.Figs = list()) {
 
-  Proj.Path <- normalizePath(Proj.Path)
-  Proj.Path <- paste0(Proj.Path,'/NoProj_',Proj.Name) %>% gsub("\\\\", "/", .)
+proj <- NoProj$new(Proj.Path = '.',Proj.Name = 'Demo')
 
-  if(dir.exists(Proj.Path)){
-    stop('Project folder existed')
-  }
-  if(is.null(Proj.Name)){
-    stop('Project must have a name')
-  }
+fig <- NoFig$new(Fig.Name = 'Fig1')
 
-  dir.create(Proj.Path)
+proj$show('Proj.Figs',F)
+proj$addFig <- fig
+proj$show('Proj.Figs',F)
 
-  NoProj$new(
-    Proj.Path = Proj.Path,
-    Proj.Name = Proj.Name,
-    Proj.Text = Proj.Text,
-    Proj.Figs = Proj.Figs
-  )
-}
-
-proj <- init_Proj(Proj.Path = '.',Proj.Name = 'Demo')
-
-
+fig$show(int = F)
 # Add ---------------------------------------------------------------------
 
 AddFig <- function(Proj,
-                    Fig.Name,
-                    Fig.Text = '',
-                    Fig.Plts = list()) {
+                   Fig.Name,
+                   Fig.Text = '') {
   if(is.null(Fig.Name) ){
     stop('Project must have a name')
   }
@@ -124,10 +182,9 @@ AddFig <- function(Proj,
     stop('Figure existed')
   }
 
-  Fig <- NoFig(
+  Fig <- NoFig$new(
     Fig.Name = Fig.Name,
-    Fig.Text = Fig.Text,
-    Fig.Plts = list())
+    Fig.Text = Fig.Text)
 
   Proj@Proj.Figs[[Fig.Name]] <- Fig
 
