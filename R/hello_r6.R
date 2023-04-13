@@ -154,18 +154,28 @@ test <- R6Class(
   )
 )
 
-# Initiating --------------------------------------------------------------
 
+# AddFig ------------------------------------------------------------------
+AddFig <- function(Fig.Name,
+                   Fig.Text = '',
+                   NoProj){
+  fig <- NoFig$new(Fig.Name,Fig.Text)
+  NoProj$addFig <- fig
+  # TODO:create Fig folder
+}
 
+# TEST: Success
 proj <- NoProj$new(Proj.Path = '.',Proj.Name = 'Demo')
-
 fig <- NoFig$new(Fig.Name = 'Fig1')
-
-proj$show('Proj.Figs',F)
-proj$addFig <- fig
+AddFig('Fig1','',proj)
 proj$show('Proj.Figs',F)
 
-fig$show(int = F)
+
+# TODO
+# Env check ---------------------------------------------------------------
+# only one NoProj in Global env
+
+
 # Add ---------------------------------------------------------------------
 
 AddFig <- function(Proj,
