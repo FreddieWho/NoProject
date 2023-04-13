@@ -12,10 +12,6 @@
 #   Install Package:           'Ctrl + Shift + B'
 #   Check Package:             'Ctrl + Shift + E'
 #   Test Package:              'Ctrl + Shift + T'
-
-setwd('D:/Project/NoBrowser/Test')
-
-
 # Requirement -------------------------------------------------------------
 library(dplyr)
 library(ggplot2)
