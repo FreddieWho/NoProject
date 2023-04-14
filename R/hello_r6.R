@@ -44,13 +44,16 @@ plt.box_new <- ggplot(df) +
 
 NoPlot <- R6Class(
   classname = 'NoPlot',
-  public = list(
+  private = list(
     Plt.Name = 'character',
     Plt.Ver  = 'character',
     Plt.Type = 'character',
     Plt.ColMap = 'list',
     Plt.Text = 'character',
     Plt.gg = 'ggplot'
+  ),
+  public = list(
+    
   )
 )
 
@@ -84,6 +87,19 @@ NoFig <- R6Class(
              Fig.Name = private$Fig.Name,
              Fig.Text = private$Fig.Text,
              Fig.Plts = names(private$Fig.Plts))
+    }
+  ),
+  # active ####
+  active = list(
+    addPlt = function(Plt) {
+      Plt.Name = Plt$show(int = F)
+      
+      if(sum(Plt.Name %in% names(private$Figs.Plts)) > 0){
+        stop('Fig name existed')
+      } else {
+        private$Fig.Plts <- append(private$Fig.Plts,
+                                   list(Plt) %>% `names<-`(Plt.Name))
+      }
     }
   )
 )
@@ -141,8 +157,13 @@ NoProj <- R6Class(
   active = list(
     addFig = function(Fig) {
       Fig.Name = Fig$show(int = F)
-      private$Proj.Figs <- append(private$Proj.Figs,
-                                  list(Fig) %>% `names<-`(Fig.Name))
+      
+      if(sum(Fig.Name %in% names(private$Proj.Figs)) > 0){
+        stop('Fig name existed')
+      } else {
+        private$Proj.Figs <- append(private$Proj.Figs,
+                                    list(Fig) %>% `names<-`(Fig.Name))
+      }
     }
   )
 )
@@ -176,68 +197,4 @@ proj$show('Proj.Figs',F)
 # only one NoProj in Global env
 
 
-# Add ---------------------------------------------------------------------
 
-AddFig <- function(Proj,
-                   Fig.Name,
-                   Fig.Text = '') {
-  if(is.null(Fig.Name) ){
-    stop('Project must have a name')
-  }
-  if(sum(Fig.Name %in% names(Proj@Proj.Figs)) > 0){
-    stop('Figure existed')
-  }
-
-  Fig <- NoFig$new(
-    Fig.Name = Fig.Name,
-    Fig.Text = Fig.Text)
-
-  Proj@Proj.Figs[[Fig.Name]] <- Fig
-
-  Proj
-}
-
-# AddFigs <- function(Proj,
-#                     Fig.Name,
-#                     Fig.Text = '',
-#                     Fig.Plts = list()) {
-#   if(is.null(Fig.Name) ){
-#     stop('Project must have a name')
-#   }
-#   if(sum(Fig.Name %in% names(Proj@Proj.Figs)) > 0){
-#     stop('Figure existed')
-#   }
-#
-#   Fig <- NoFig(
-#     Fig.Name = Fig.Name,
-#     Fig.Text = Fig.Text,
-#     Fig.Plts = list())
-#
-#
-#   .proj.name <- deparse(substitute(Proj))
-#   eval(parse(text = eval(expression(paste0(.proj.name,'@Figs$',Fig.Name, " <- ",
-#                                            Fig)))))
-# }
-
-proj.aF <- AddFigs(proj,'Fig.1')
-
-AddPlt <- function(Proj,
-                    Fig.Name,
-                    Fig.Text = '',
-                    Fig.Plts = list()) {
-  if(is.null(Fig.Name) ){
-    stop('Project must have a name')
-  }
-  if(sum(Fig.Name %in% names(Proj@Proj.Figs)) > 0){
-    stop('Figure existed')
-  }
-
-  Fig <- NoFig(
-    Fig.Name = Fig.Name,
-    Fig.Text = Fig.Text,
-    Fig.Plts = list())
-
-  Proj@Proj.Figs[[Fig.Name]] <- Fig
-
-  Proj
-}
