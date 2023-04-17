@@ -178,8 +178,8 @@ test <- R6Class(
 
 # AddFig ------------------------------------------------------------------
 AddFig <- function(Fig.Name,
-                   Fig.Text = '',
-                   NoProj){
+                   NoProj,
+                   Fig.Text = ''){
   fig <- NoFig$new(Fig.Name,Fig.Text)
   NoProj$addFig <- fig
   # TODO:create Fig folder
@@ -198,3 +198,27 @@ proj$show('Proj.Figs',F)
 
 
 
+<<<<<<< Updated upstream
+=======
+# AddPlot -----------------------------------------------------------------
+AddPlt <- function(Proj,
+                   Fig.Name,
+                   Fig.Text = '',
+                   Fig.Plts = list()) {
+  if(is.null(Fig.Name) ){
+    stop('Project must have a name')
+  }
+  if(sum(Fig.Name %in% names(Proj@Proj.Figs)) > 0){
+    stop('Figure existed')
+  }
+
+  Fig <- NoFig(
+    Fig.Name = Fig.Name,
+    Fig.Text = Fig.Text,
+    Fig.Plts = list())
+
+  Proj@Proj.Figs[[Fig.Name]] <- Fig
+
+  Proj
+}
+>>>>>>> Stashed changes
