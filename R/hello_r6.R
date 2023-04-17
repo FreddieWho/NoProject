@@ -31,8 +31,14 @@ plt.box <- ggplot(df) +
   geom_boxplot(aes(fill = Col, y = C, x = (id %% 3) %>% as.factor()))
 
 plt.box_new <- ggplot(df) +
-  geom_boxplot(aes(fill = Col, y = C, x = (id %% 3) %>% as.factor())) +
-  ggsci::scale_fill_aaas()
+  geom_boxplot(aes(fill = Col, y = C,
+                   x = (id %% 3) %>% as.factor())) +
+  geom_point(aes(x = (id %% 3) %>% as.factor(),
+                 y = C,
+                 col = D),
+             position = 'jitter') +
+  scale_color_viridis_c() +
+  ggsci::scale_fill_aaas();plt.box_new
 
 # structure & function ----------------------------------------------------
 
@@ -42,18 +48,31 @@ plt.box_new <- ggplot(df) +
 
 # classes -----------------------------------------------------------------
 
+# WISHLIST: ColMap
 NoPlot <- R6Class(
   classname = 'NoPlot',
-  private = list(
+  public = list(
     Plt.Name = 'character',
     Plt.Ver  = 'character',
     Plt.Type = 'character',
-    Plt.ColMap = 'list',
+    # Plt.ColMap = 'list',
     Plt.Text = 'character',
-    Plt.gg = 'ggplot'
-  ),
-  public = list(
-    
+    Plt.Gg = 'ggplot',
+    initialize = function(ggplot,
+                          Plt.Name,
+                          Plt.Ver = 'v1',
+                          Plt.Type,
+                          Plt.ColMap,
+                          Plt.Text){
+      self$Plt.Gg   <- ggplot
+      self$Plt.Name <- Plt.Name
+      self$Plt.Ver  <- Plt.Ver
+      self$Plt.Type <- sapply(ggplot$layers,function(layer) {
+        class(layer$geom)[1]
+      })
+      self$Plt.Text <- ifelse(missing(Plt.Text),'',Plt.Text)
+
+    }
   )
 )
 
@@ -63,17 +82,15 @@ NoPlot <- R6Class(
 
 NoFig <- R6Class(
   classname = 'NoFig',
-  private = list(
+  public = list(
     Fig.Name = 'character',
     Fig.Text = 'character',
-    Fig.Plts = 'list'
-  ),
-  public = list(
+    Fig.Plts = 'list',
     initialize = function(Fig.Name,
                           Fig.Text = ''){
-      private$Fig.Name <- Fig.Name
-      private$Fig.Text <- Fig.Text
-      private$Fig.Plts <- NA
+      self$Fig.Name <- Fig.Name
+      self$Fig.Text <- Fig.Text
+      self$Fig.Plts <- NA
     },
     show = function(choose = 'Fig.Name',int = T){
       if(int){
@@ -82,22 +99,21 @@ NoFig <- R6Class(
           stop('Enter a slot')
         }
       }
-
       switch(choose,
-             Fig.Name = private$Fig.Name,
-             Fig.Text = private$Fig.Text,
-             Fig.Plts = names(private$Fig.Plts))
+             Fig.Name = self$Fig.Name,
+             Fig.Text = self$Fig.Text,
+             Fig.Plts = names(self$Fig.Plts))
     }
   ),
   # active ####
   active = list(
     addPlt = function(Plt) {
       Plt.Name = Plt$show(int = F)
-      
-      if(sum(Plt.Name %in% names(private$Figs.Plts)) > 0){
+
+      if(sum(Plt.Name %in% names(self$Figs.Plts)) > 0){
         stop('Fig name existed')
       } else {
-        private$Fig.Plts <- append(private$Fig.Plts,
+        self$Fig.Plts <- append(self$Fig.Plts,
                                    list(Plt) %>% `names<-`(Plt.Name))
       }
     }
@@ -109,15 +125,12 @@ NoFig <- R6Class(
 
 NoProj <- R6Class(
   classname = 'NoProj',
-  # private ####
-  private = list(
+  # public ####
+  public = list(
     Proj.Path = 'character',
     Proj.Name = 'character',
     Proj.Text = 'character',
-    Proj.Figs = 'list'
-  ),
-  # public ####
-  public = list(
+    Proj.Figs = 'list',
     initialize = function(Proj.Path,
                           Proj.Name,
                           Proj.Text = ''){
@@ -131,10 +144,10 @@ NoProj <- R6Class(
         stop('Project must have a name')
       }
 
-      private$Proj.Path <- Proj.Path
-      private$Proj.Name <- Proj.Name
-      private$Proj.Text <- Proj.Text
-      private$Proj.Figs <- NULL
+      self$Proj.Path <- Proj.Path
+      self$Proj.Name <- Proj.Name
+      self$Proj.Text <- Proj.Text
+      self$Proj.Figs <- list()
 
       dir.create(Proj.Path)
     },
@@ -147,42 +160,35 @@ NoProj <- R6Class(
       }
 
       switch(choose,
-             Proj.Path = private$Proj.Path,
-             Proj.Name = private$Proj.Name,
-             Proj.Text = private$Proj.Text,
-             Proj.Figs = names(private$Proj.Figs))
+             Proj.Path = self$Proj.Path,
+             Proj.Name = self$Proj.Name,
+             Proj.Text = self$Proj.Text,
+             Proj.Figs = names(self$Proj.Figs))
     }
   ),
   # active ####
   active = list(
     addFig = function(Fig) {
       Fig.Name = Fig$show(int = F)
-      
-      if(sum(Fig.Name %in% names(private$Proj.Figs)) > 0){
+
+      if(sum(Fig.Name %in% names(self$Proj.Figs)) > 0){
         stop('Fig name existed')
       } else {
-        private$Proj.Figs <- append(private$Proj.Figs,
-                                    list(Fig) %>% `names<-`(Fig.Name))
+        self$Proj.Figs[[Fig.Name]] <- Fig
       }
     }
-  )
-)
-
-test <- R6Class(
-  classname = 'test',
-  public = list(
-    x = 'character'
   )
 )
 
 
 # AddFig ------------------------------------------------------------------
 AddFig <- function(Fig.Name,
-                   NoProj,
-                   Fig.Text = ''){
+                   Fig.Text = '',
+                   NoProj){
   fig <- NoFig$new(Fig.Name,Fig.Text)
   NoProj$addFig <- fig
-  # TODO:create Fig folder
+
+  dir.create(paste0(NoProj$Proj.Path,'/',Fig.Name))
 }
 
 # TEST: Success
@@ -191,15 +197,6 @@ fig <- NoFig$new(Fig.Name = 'Fig1')
 AddFig('Fig1','',proj)
 proj$show('Proj.Figs',F)
 
-
-# TODO
-# Env check ---------------------------------------------------------------
-# only one NoProj in Global env
-
-
-
-<<<<<<< Updated upstream
-=======
 # AddPlot -----------------------------------------------------------------
 AddPlt <- function(Proj,
                    Fig.Name,
@@ -221,4 +218,10 @@ AddPlt <- function(Proj,
 
   Proj
 }
->>>>>>> Stashed changes
+
+# TODO
+# Env check ---------------------------------------------------------------
+# only one NoProj in Global env
+
+
+
