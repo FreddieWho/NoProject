@@ -61,8 +61,7 @@ NoPlot <- R6Class(
     initialize = function(ggplot,
                           Plt.Name,
                           Plt.Ver = 'v1',
-                          Plt.Type,
-                          Plt.ColMap,
+                          # Plt.ColMap,
                           Plt.Text){
       self$Plt.Gg   <- ggplot
       self$Plt.Name <- Plt.Name
@@ -87,10 +86,11 @@ NoFig <- R6Class(
     Fig.Text = 'character',
     Fig.Plts = 'list',
     initialize = function(Fig.Name,
-                          Fig.Text = ''){
+                          Fig.Text = '',
+                          Fig.Plts = list()){
       self$Fig.Name <- Fig.Name
       self$Fig.Text <- Fig.Text
-      self$Fig.Plts <- NA
+      self$Fig.Plts <- Fig.Plts
     },
     show = function(choose = 'Fig.Name',int = T){
       if(int){
@@ -107,14 +107,13 @@ NoFig <- R6Class(
   ),
   # active ####
   active = list(
-    addPlt = function(Plt) {
-      Plt.Name = Plt$show(int = F)
+    addPlot = function(Plt) {
+      Plt.Name = Plt$Plt.Name
 
       if(sum(Plt.Name %in% names(self$Figs.Plts)) > 0){
-        stop('Fig name existed')
+        stop('Plt existed')
       } else {
-        self$Fig.Plts <- append(self$Fig.Plts,
-                                   list(Plt) %>% `names<-`(Plt.Name))
+        self$Fig.Plts[[Plt.Name]] <- Plt
       }
     }
   )
@@ -198,26 +197,47 @@ AddFig('Fig1','',proj)
 proj$show('Proj.Figs',F)
 
 # AddPlot -----------------------------------------------------------------
+
 AddPlt <- function(Proj,
                    Fig.Name,
-                   Fig.Text = '',
-                   Fig.Plts = list()) {
-  if(is.null(Fig.Name) ){
-    stop('Project must have a name')
+                   ggplot,
+                   Plt.Name,
+                   Plt.Ver = 'v1',
+                   # Plt.ColMap,
+                   Plt.Text) {
+  if(missing(Fig.Name) ){
+    stop('Missed Fig.Name')
   }
-  if(sum(Fig.Name %in% names(Proj@Proj.Figs)) > 0){
-    stop('Figure existed')
+  if(missing(Plt.Name) ){
+    stop('Missed Fig.Name')
+  }
+  if(Plt.Name %in% names(Proj$Proj.Figs[[Fig.Name]]$Fig.Plts)){
+    stop('Plot existed')
   }
 
-  Fig <- NoFig(
-    Fig.Name = Fig.Name,
-    Fig.Text = Fig.Text,
-    Fig.Plts = list())
+  noPlt <- NoPlot$new(
+    ggplot,
+    Plt.Name,
+    Plt.Ver,
+    # Plt.ColMap,
+    Plt.Text)
 
-  Proj@Proj.Figs[[Fig.Name]] <- Fig
-
-  Proj
+  saveRDS(ggplot,
+          file = paste0(Proj$Proj.Path,'/',
+                        Fig.Name,'/',
+                        Plt.Name,'_',
+                        Plt.Ver,'.rds'))
+  Proj$Proj.Figs[[Fig.Name]]$addPlot <- noPlt
 }
+
+
+# TEST: Success
+AddPlt(proj,
+       Fig.Name = 'Fig1',
+       ggplot = plt.box_new,
+       Plt.Name = 'plt.box_new')
+
+
 
 # TODO
 # Env check ---------------------------------------------------------------
