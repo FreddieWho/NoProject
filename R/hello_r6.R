@@ -70,7 +70,9 @@ NoPlot <- R6Class(
         class(layer$geom)[1]
       })
       self$Plt.Text <- ifelse(missing(Plt.Text),'',Plt.Text)
-
+    },
+    print = function(){
+      print(self$Plt.Gg)
     }
   )
 )
@@ -103,6 +105,9 @@ NoFig <- R6Class(
              Fig.Name = self$Fig.Name,
              Fig.Text = self$Fig.Text,
              Fig.Plts = names(self$Fig.Plts))
+    },
+    `[[` = function(Plt.Name){
+      self$Fig.Plts[[Plt.Name]]
     }
   ),
   # active ####
@@ -163,6 +168,17 @@ NoProj <- R6Class(
              Proj.Name = self$Proj.Name,
              Proj.Text = self$Proj.Text,
              Proj.Figs = names(self$Proj.Figs))
+    },
+    `[[` = function(Fig.Name){
+      self$Proj.Figs[[Fig.Name]]
+    },
+    summary = function(){
+      sapply(names(self$Proj.Figs), function(Fig.Name){
+        sapply(names(self[[Fig.Name]]$Fig.Plts),function(Plt.Name){
+          c(Fig.Name,Plt.Name)
+        })
+      }) %>% bind_cols() %>% t() %>% as.data.frame(row.names = NULL) %>%
+        `colnames<-`(c('Fig','Plt'))
     }
   ),
   # active ####
@@ -194,26 +210,31 @@ AddFig <- function(Fig.Name,
 proj <- NoProj$new(Proj.Path = '.',Proj.Name = 'Demo')
 fig <- NoFig$new(Fig.Name = 'Fig1')
 AddFig('Fig1','',proj)
+AddFig('Fig2','',proj)
 proj$show('Proj.Figs',F)
 
 # AddPlot -----------------------------------------------------------------
 
-AddPlt <- function(Proj,
+AddPlt <- function(ggplot,
+                   Proj,
                    Fig.Name,
-                   ggplot,
                    Plt.Name,
                    Plt.Ver = 'v1',
                    # Plt.ColMap,
-                   Plt.Text) {
+                   Plt.Text,
+                   override = F) {
   if(missing(Fig.Name) ){
     stop('Missed Fig.Name')
   }
   if(missing(Plt.Name) ){
     stop('Missed Fig.Name')
   }
-  if(Plt.Name %in% names(Proj$Proj.Figs[[Fig.Name]]$Fig.Plts)){
-    stop('Plot existed')
+  if(!override){
+    if(Plt.Name %in% names(Proj$Proj.Figs[[Fig.Name]]$Fig.Plts)){
+      stop('Plot existed')
+    }
   }
+
 
   noPlt <- NoPlot$new(
     ggplot,
@@ -232,13 +253,32 @@ AddPlt <- function(Proj,
 
 
 # TEST: Success
-AddPlt(proj,
+AddPlt(ggplot = plt.box_new,
+       Proj = proj,
        Fig.Name = 'Fig1',
-       ggplot = plt.box_new,
-       Plt.Name = 'plt.box_new')
+       Plt.Name = 'plt.box_new',override = T)
 
 
+(ggplot() + geom_histogram(aes(x = df$A))) %>%
+  AddPlt(Proj = proj,
+         Fig.Name = 'Fig1',
+         Plt.Name = 'plt.hist',override = T)
 
+plt.bar %>% AddPlt(proj,'Fig1','plt.bar')
+plt.pnt %>% AddPlt(proj,'Fig2','plt.pnt')
+
+
+tmp <- proj$summary()
+
+# export ------------------------------------------------------------------
+
+`[[.NoProj` = function(NoProj,...) NoProj$`[[`(...)
+`[[.NoFig` = function(NoFig,...) NoFig$`[[`(...)
+
+
+proj[['Fig1']]$Fig.Plts
+
+tmp
 # TODO
 # Env check ---------------------------------------------------------------
 # only one NoProj in Global env
