@@ -1,0 +1,26 @@
+# TEST: Success
+```{R}
+proj <- NoProj$new(Proj.Path = '.',Proj.Name = 'Demo')
+fig <- NoFig$new(Fig.Name = 'Fig1')
+AddFig('Fig1','',proj)
+AddFig('Fig2','',proj)
+proj$show('Proj.Figs',F)
+
+# TEST: Success
+AddPlt(ggplot = plt.box_new,
+       Proj = proj,
+       Fig.Name = 'Fig1',
+       Plt.Name = 'plt.box_new',override = T)
+
+
+(ggplot() + geom_histogram(aes(x = df$A))) %>%
+  AddPlt(Proj = proj,
+         Fig.Name = 'Fig1',
+         Plt.Name = 'plt.hist',override = T)
+
+plt.bar %>% AddPlt(proj,'Fig1','plt.bar')
+plt.pnt %>% AddPlt(proj,'Fig2','plt.pnt')
+
+proj[['Fig1']][['plt.bar']]
+
+```

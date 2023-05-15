@@ -172,6 +172,7 @@ NoProj <- R6Class(
     `[[` = function(Fig.Name){
       self$Proj.Figs[[Fig.Name]]
     },
+    `+` = function(a,b) {paste(a,b)},
     summary = function(){
       sapply(names(self$Proj.Figs), function(Fig.Name){
         sapply(names(self[[Fig.Name]]$Fig.Plts),function(Plt.Name){
@@ -274,6 +275,7 @@ tmp <- proj$summary()
 
 `[[.NoProj` = function(NoProj,...) NoProj$`[[`(...)
 `[[.NoFig` = function(NoFig,...) NoFig$`[[`(...)
+`+.NoProj` = function(NoProj,...) NoFig$`+`(...)
 
 
 proj[['Fig1']]$Fig.Plts
@@ -285,3 +287,4 @@ tmp
 
 
 
+ggplot2:::`+.gg`
