@@ -1,12 +1,4 @@
-# Hello, world!
-#
-# This is an example function named 'hello'
-# which prints 'Hello, world!'.
-#
-# You can learn more about package authoring with RStudio at:
-#
-#   http://r-pkgs.had.co.nz/
-#
+
 # Some useful keyboard shortcuts for package authoring:
 #
 #   Install Package:           'Ctrl + Shift + B'
@@ -39,12 +31,6 @@ plt.box_new <- ggplot(df) +
              position = 'jitter') +
   scale_color_viridis_c() +
   ggsci::scale_fill_aaas();plt.box_new
-
-# structure & function ----------------------------------------------------
-
-# Core principle
-# + Object Oriented
-# + Figure Based
 
 # classes -----------------------------------------------------------------
 
